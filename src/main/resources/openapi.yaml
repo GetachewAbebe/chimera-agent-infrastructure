@@ -1,0 +1,375 @@
+openapi: 3.0.3
+info:
+  title: Chimera Agent Infrastructure API
+  version: 0.2.0
+  description: |
+    Tenant-scoped orchestration API for campaign planning, task listing, and review actions.
+servers:
+  - url: http://localhost:8080
+paths:
+  /health:
+    get:
+      summary: Liveness probe
+      responses:
+        '200':
+          description: Service is live
+  /ready:
+    get:
+      summary: Readiness probe
+      responses:
+        '200':
+          description: Service is ready
+  /openapi.yaml:
+    get:
+      summary: API specification
+      responses:
+        '200':
+          description: OpenAPI YAML document
+  /api/campaigns:
+    post:
+      summary: Create campaign tasks
+      parameters:
+        - $ref: '#/components/parameters/ApiKeyHeader'
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/RoleHeaderOperator'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCampaignRequest'
+      responses:
+        '201':
+          description: Planned tasks created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /api/tasks:
+    get:
+      summary: List tenant tasks
+      parameters:
+        - $ref: '#/components/parameters/ApiKeyHeader'
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/RoleHeaderAny'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      responses:
+        '200':
+          description: Tenant task list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/telemetry:
+    get:
+      summary: Tenant runtime telemetry
+      parameters:
+        - $ref: '#/components/parameters/ApiKeyHeader'
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/RoleHeaderAny'
+        - $ref: '#/components/parameters/RequestIdHeader'
+      responses:
+        '200':
+          description: Queue depth and runtime telemetry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetrySnapshot'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/review/{taskId}/approve:
+    post:
+      summary: Approve task
+      parameters:
+        - $ref: '#/components/parameters/ApiKeyHeader'
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/RoleHeaderReviewer'
+        - $ref: '#/components/parameters/RequestIdHeader'
+        - $ref: '#/components/parameters/TaskIdPath'
+      responses:
+        '200':
+          description: Review decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDecision'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /api/review/{taskId}/reject:
+    post:
+      summary: Reject task
+      parameters:
+        - $ref: '#/components/parameters/ApiKeyHeader'
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/RoleHeaderReviewer'
+        - $ref: '#/components/parameters/RequestIdHeader'
+        - $ref: '#/components/parameters/TaskIdPath'
+      responses:
+        '200':
+          description: Review decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDecision'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /api/dead-letter/{taskId}/replay:
+    post:
+      summary: Replay dead-lettered task
+      parameters:
+        - $ref: '#/components/parameters/ApiKeyHeader'
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/TenantHeader'
+        - $ref: '#/components/parameters/RoleHeaderOperator'
+        - $ref: '#/components/parameters/RequestIdHeader'
+        - $ref: '#/components/parameters/TaskIdPath'
+      responses:
+        '200':
+          description: Task requeued for execution
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  parameters:
+    ApiKeyHeader:
+      name: X-Api-Key
+      in: header
+      required: false
+      description: API key auth header. Provide either this header or Authorization bearer token.
+      schema:
+        type: string
+    AuthorizationHeader:
+      name: Authorization
+      in: header
+      required: false
+      description: Bearer JWT auth header (HS256 or RS256/JWKS). Provide either this header or X-Api-Key.
+      schema:
+        type: string
+        pattern: '^Bearer\\s+.+$'
+    TenantHeader:
+      name: X-Tenant-Id
+      in: header
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-zA-Z0-9_-]{2,64}$'
+    RequestIdHeader:
+      name: X-Request-Id
+      in: header
+      required: false
+      schema:
+        type: string
+    RoleHeaderOperator:
+      name: X-Role
+      in: header
+      required: true
+      schema:
+        type: string
+        enum: [operator]
+    RoleHeaderReviewer:
+      name: X-Role
+      in: header
+      required: true
+      schema:
+        type: string
+        enum: [reviewer]
+    RoleHeaderAny:
+      name: X-Role
+      in: header
+      required: true
+      schema:
+        type: string
+        enum: [operator, reviewer, viewer]
+    TaskIdPath:
+      name: taskId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Unauthorized:
+      description: Missing or invalid authentication headers
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Forbidden:
+      description: Insufficient role permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    RateLimited:
+      description: Request rate exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+  schemas:
+    CreateCampaignRequest:
+      type: object
+      required: [goal]
+      properties:
+        goal:
+          type: string
+        workerId:
+          type: string
+        requiredResources:
+          type: array
+          items:
+            type: string
+    Task:
+      type: object
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+        taskType:
+          type: string
+        priority:
+          type: string
+        context:
+          $ref: '#/components/schemas/TaskContext'
+        assignedWorkerId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+    TaskContext:
+      type: object
+      properties:
+        goalDescription:
+          type: string
+        personaConstraints:
+          type: array
+          items:
+            type: string
+        requiredResources:
+          type: array
+          items:
+            type: string
+    ReviewDecision:
+      type: object
+      properties:
+        outcome:
+          type: string
+        nextStatus:
+          type: string
+        reason:
+          type: string
+    TelemetrySnapshot:
+      type: object
+      properties:
+        tenantId:
+          type: string
+        taskQueueDepth:
+          type: integer
+        reviewQueueDepth:
+          type: integer
+        deadLetterQueueDepth:
+          type: integer
+        totalTasks:
+          type: integer
+        statusCounts:
+          type: object
+          additionalProperties:
+            type: integer
+        queueBackend:
+          type: string
+        walletProvider:
+          type: string
+        dailyBudgetUsd:
+          type: number
+        todaySpendUsd:
+          type: number
+        remainingBudgetUsd:
+          type: number
+        walletTransfersToday:
+          type: integer
+        spendDeltaVsYesterdayUsd:
+          type: number
+        trendSignalsToday:
+          type: integer
+        topTrendTopicsToday:
+          type: array
+          items:
+            type: string
+        workerP50LatencyMs:
+          type: integer
+        workerP95LatencyMs:
+          type: integer
+        successfulExecutionsToday:
+          type: integer
+        failedExecutionsToday:
+          type: integer
+        retryAttemptsToday:
+          type: integer
+        deadLetteredTasksToday:
+          type: integer
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+        detail:
+          type: string

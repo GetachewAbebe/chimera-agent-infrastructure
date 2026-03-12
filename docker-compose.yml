@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      PORT: 8080
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/chimera
+      POSTGRES_USER: chimera
+      POSTGRES_PASSWORD: chimera
+      REDIS_URL: redis://redis:6379
+      CHIMERA_API_KEYS: "${CHIMERA_API_KEYS:-dev-tenant-alpha-key:tenant-alpha:operator,reviewer,viewer;dev-tenant-beta-key:tenant-beta:operator,reviewer,viewer}"
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: chimera
+      POSTGRES_USER: chimera
+      POSTGRES_PASSWORD: chimera
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chimera -d chimera"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - redisdata:/data
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata:
+  redisdata:

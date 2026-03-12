@@ -201,6 +201,16 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
+# Java/Maven
+target/
+*.class
+*.jar
+.mvn/wrapper/maven-wrapper.jar
+
+# Node
+node_modules/
+frontend/node_modules/
+
 # Marimo
 marimo/_static/
 marimo/_lsp/
