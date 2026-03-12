@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if ! command -v rg >/dev/null 2>&1; then
+  rg() {
+    grep -E "$@"
+  }
+fi
+
 required_files=(
   "specs/_meta.md"
   "specs/functional.md"
