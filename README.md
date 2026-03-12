@@ -38,7 +38,7 @@ This repository provides an industry-standard baseline focused on:
 ## Repository Structure
 
 - `specs/`: spec-first source of truth
-- `tests/`: top-level submission index for backend, frontend, and load-validation suites
+- `tests/`: top-level TDD contract tests plus a submission index for the wider test suite
 - `skills/`: runtime skill structure and skill-specific instructions
 - `reports/`: research report, project report, Loom script, and submission checklist
 - `Makefile`: standard local and CI task entrypoints

@@ -22,7 +22,7 @@ Source: `Project Chimera_ The Agentic Infrastructure Challenge.docx`
 | Rules file with project context, prime directive, Java directives, traceability | Done | `.cursor/rules/agent.mdc` | None |
 | Tooling strategy distinguishes Dev MCP vs Runtime Skills | Done | `research/tooling_strategy.md` | None |
 | At least 2 runtime skills with formal I/O contracts | Done | `skills/skill_download_youtube/README.md`, `skills/skill_transcribe_audio/README.md`, `skills/README.md` | Runtime implementations still pending |
-| TDD contracts (`trendFetcherTest`, `skillsInterfaceTest`) | Done | `src/test/java/org/chimera/tests/trendFetcherTest.java`, `src/test/java/org/chimera/tests/skillsInterfaceTest.java` | Preserve red->green story in Loom demo |
+| TDD contracts (`trendFetcherTest`, `skillsInterfaceTest`) | Done | `tests/org/chimera/tests/trendFetcherTest.java`, `tests/org/chimera/tests/skillsInterfaceTest.java` | Preserve red->green story in Loom demo |
 | Automation via task runner (`make setup`, `make test`, `make lint`) | Done | `Makefile` | None |
 | CI pipeline runs quality/test on push/PR | Done | `.github/workflows/main.yml` | None |
 | AI review policy (`.coderabbit.yaml`) checks spec/thread-safety/security | Done | `.coderabbit.yaml` | None |
@@ -86,7 +86,7 @@ Based on provided rubric categories and current repo state.
 | Security | Pro-ready | API key/JWT/JWKS/rate-limit/budget guard, sensitive-topic classifier escalation, disclosure enforcement, honesty directive handling | Add external secrets-manager runtime integration |
 | Acceptance Criteria | Average | `specs/acceptance_criteria.md`, tests | Expand criteria-to-test coverage for all major SRS modules |
 | MCP Configuration | Pro-ready | `.cursor/mcp.json`, `.vscode/mcp.json` | Add connection verification artifact |
-| Agent Skills Structure | Pro-ready | `skills/**`, `src/main/java/org/chimera/skills/RuntimeSkillGateway.java`, `src/main/java/org/chimera/skills/DownloadYoutubeSkill.java`, `src/main/java/org/chimera/skills/TranscribeAudioSkill.java`, `src/test/java/org/chimera/tests/skillsInterfaceTest.java` | Add external tool-backed runtime adapters for production media workloads |
+| Agent Skills Structure | Pro-ready | `skills/**`, `src/main/java/org/chimera/skills/RuntimeSkillGateway.java`, `src/main/java/org/chimera/skills/DownloadYoutubeSkill.java`, `src/main/java/org/chimera/skills/TranscribeAudioSkill.java`, `tests/org/chimera/tests/skillsInterfaceTest.java` | Add external tool-backed runtime adapters for production media workloads |
 | Commit Progression & Git Hygiene | Gap | `git log` shows single initial commit | Rebuild commit history in logical milestones before final submission |
 
 ## 5) Immediate Execution Order (to close top gaps)

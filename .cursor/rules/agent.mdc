@@ -4,14 +4,14 @@ alwaysApply: true
 ---
 
 # Project Context
-This is Project Chimera, an autonomous influencer infrastructure system.
+This is Project Chimera, an autonomous influencer system.
 
 # Prime Directive
 NEVER generate code without checking specs/ first.
 
 # Java Directives
 - Strictly adhere to Java 21+ idioms.
-- Use Java `record` for immutable DTOs passed between Planner/Worker/Judge.
+- Utilize Records for immutable data transfer objects (DTOs) passing between Planner/Worker/Judge.
 - Use JUnit 5 for all generated tests.
 - Use virtual-thread based concurrency for worker execution where appropriate.
 

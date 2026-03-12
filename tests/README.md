@@ -1,6 +1,10 @@
 # Test Index
 
-This top-level `tests/` directory exists as a submission-friendly index for the repository test suites.
+This top-level `tests/` directory contains the two challenge-specific TDD contract tests and serves as the submission-friendly index for the rest of the repository test suites.
+
+Challenge-required contract tests:
+- `tests/org/chimera/tests/trendFetcherTest.java`
+- `tests/org/chimera/tests/skillsInterfaceTest.java`
 
 Backend and contract tests:
 - `src/test/java/org/chimera/tests/**`

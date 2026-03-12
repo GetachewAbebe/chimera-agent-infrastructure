@@ -46,12 +46,14 @@
   - `.vscode/mcp.json`
 - Agent Skills Structure:
   - `skills/**`
-  - `src/test/java/org/chimera/tests/skillsInterfaceTest.java`
+  - `tests/org/chimera/tests/skillsInterfaceTest.java`
 - CI/CD & Governance:
   - `.github/workflows/main.yml`
   - `.coderabbit.yaml`
 - Testing (TDD):
-  - `src/test/java/org/chimera/tests/**`
+  - `tests/org/chimera/tests/trendFetcherTest.java`
+  - `tests/org/chimera/tests/skillsInterfaceTest.java`
+  - `src/test/java/**`
 - Swarm Concurrency:
   - `src/main/java/org/chimera/worker/WorkerService.java`
   - `scripts/load_validation.sh`

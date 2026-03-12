@@ -8,7 +8,7 @@ setup:
 	$(MVN) -q $(MAVEN_FLAGS) -DskipTests clean install
 
 test:
-	$(MVN) -q $(MAVEN_FLAGS) test
+	$(MVN) -q $(MAVEN_FLAGS) clean test
 
 lint:
 	$(MVN) -q $(MAVEN_FLAGS) -DskipTests validate com.diffplug.spotless:spotless-maven-plugin:check
