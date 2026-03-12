@@ -1,6 +1,6 @@
-# Project Chimera: Agentic Infrastructure
+# Project Chimera: Autonomous Influencer Factory
 
-Project Chimera is a spec-driven, governance-first infrastructure for autonomous influencer agents.
+Project Chimera is a spec-driven, governance-first platform for building and operating autonomous influencer agents.
 
 This repository provides an industry-standard baseline focused on:
 
@@ -8,7 +8,7 @@ This repository provides an industry-standard baseline focused on:
 - Planner -> Worker -> Judge swarm orchestration
 - MCP-first integration contracts
 - Human-in-the-loop governance and security controls
-- TDD contract tests with red-phase contracts now implemented in a first green-phase slice
+- automated backend and frontend verification
 - CI/CD, linting, automation, containerization, and documentation
 
 ## Tech Stack
@@ -20,17 +20,36 @@ This repository provides an industry-standard baseline focused on:
 - Docker
 - GitHub Actions
 
+## Top-Level Layout
+
+```text
+.
+├── specs/
+├── tests/
+├── skills/
+├── reports/
+├── frontend/
+├── src/
+├── .github/workflows/
+├── .cursor/rules/
+└── Makefile
+```
+
 ## Repository Structure
 
 - `specs/`: spec-first source of truth
+- `tests/`: top-level submission index for backend, frontend, and load-validation suites
+- `skills/`: runtime skill structure and skill-specific instructions
+- `reports/`: research report, project report, Loom script, and submission checklist
+- `Makefile`: standard local and CI task entrypoints
+- `.github/workflows/`: CI/CD workflow definitions
+- `.cursor/rules/`: IDE agent governance rules
 - `src/main/java/org/chimera/`: backend domain and orchestration skeleton
 - `src/main/resources/soul/SOUL.md`: versioned agent persona source
-- `src/test/java/org/chimera/tests/`: contract-first tests (green after first implementation slice)
-- `skills/`: runtime skill I/O contracts
+- `src/test/java/org/chimera/tests/`: backend contract and regression tests
 - `research/`: architecture and tooling strategy
 - `docs/`: architecture, security, frontend, and governance docs
-- `.cursor/`, `.vscode/`: agent and MCP configuration
-- `.github/`: workflow and review policy
+- `.cursor/mcp.json`, `.vscode/mcp.json`: agent and MCP configuration
 - `db/migrations/`: SQL schema baseline
 
 ## Quickstart
@@ -42,7 +61,7 @@ make spec-check
 make test
 ```
 
-`make test` is expected to pass in the current green-phase baseline.
+`make test` runs the current backend test suite.
 
 Load validation:
 

@@ -8,5 +8,5 @@
 - DB management: `docs/db_data_management.md`
 - Rule blueprint: `docs/rule_creation_blueprint.md`
 - Agent evolution: `docs/agentic_trajectory.md`
-- Submission artifacts: `docs/submissions/`
+- Reports and submission artifacts: `reports/`
 - Specifications: `specs/`

@@ -1,4 +1,4 @@
-# Day 1 Report: Project Chimera
+# Project Chimera: Research and Architecture Report
 
 ## Research Summary
 

@@ -1,12 +1,12 @@
-# Project Chimera: Final Project Report
+# Project Chimera: Autonomous Influencer Factory Report
 
 Date: March 12, 2026
 
 ## 1. Executive Summary
 
-Project Chimera is a governed autonomous influencer infrastructure built around a spec-first, MCP-based, multi-agent architecture. The system is designed to transform high-level campaign intent into auditable, policy-controlled execution through a `Planner -> Worker -> Judge` pattern, with explicit Human-in-the-Loop (HITL) escalation for sensitive or uncertain outputs.
+Project Chimera is a governed autonomous influencer platform built around a spec-first, MCP-based, multi-agent architecture. The system is designed to transform high-level campaign intent into auditable, policy-controlled execution through a `Planner -> Worker -> Judge` pattern, with explicit Human-in-the-Loop (HITL) escalation for sensitive or uncertain outputs.
 
-The project emphasizes infrastructure discipline over ad-hoc prompting. Core design goals include:
+The project emphasizes engineering discipline over ad-hoc prompting. Core design goals include:
 
 - deterministic task contracts
 - explicit MCP integration boundaries
@@ -19,7 +19,7 @@ The result is not just a content generation interface. It is an agent operations
 
 ## 2. Problem Framing and Research Synthesis
 
-The challenge documents point toward a broader agent-infrastructure problem: autonomous agents are only useful at production scale when they are governed, observable, and interoperable.
+The challenge documents point toward a broader agent-platform problem: autonomous agents are only useful at production scale when they are governed, observable, and interoperable.
 
 Three research conclusions shaped Project Chimera:
 
@@ -317,9 +317,9 @@ The next most valuable improvements would be:
 
 ## 14. Conclusion
 
-Project Chimera delivers a governed autonomous agent infrastructure aligned with the challenge’s intent. It demonstrates how a modern agent system can combine orchestration, policy, observability, and human oversight in one coherent platform.
+Project Chimera delivers a governed autonomous agent platform aligned with the challenge’s intent. It demonstrates how a modern agent system can combine orchestration, policy, observability, and human oversight in one coherent platform.
 
-Rather than presenting autonomy as an unconstrained capability, Chimera treats autonomy as an infrastructure problem: tasks must be structured, outputs must be governed, actions must be auditable, and operators must have clear control surfaces. That is the central engineering thesis of the project, and it is reflected consistently across the specifications, backend, frontend, testing, and documentation.
+Rather than presenting autonomy as an unconstrained capability, Chimera treats autonomy as a systems problem: tasks must be structured, outputs must be governed, actions must be auditable, and operators must have clear control surfaces. That is the central engineering thesis of the project, and it is reflected consistently across the specifications, backend, frontend, testing, and documentation.
 
 ## 15. Submission Metadata
 

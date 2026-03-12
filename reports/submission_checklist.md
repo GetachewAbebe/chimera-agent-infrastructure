@@ -21,7 +21,7 @@
 
 - Research & Domain Analysis:
   - `research/research_summary.md`
-  - `docs/submissions/day1_report.md`
+  - `reports/day1_research_report.md`
 - Architectural Approach:
   - `research/architecture_strategy.md`
   - `docs/architecture.md`

@@ -2,7 +2,7 @@
 
 ## 0:00 - 0:40 Project Framing
 - Open `README.md`.
-- State objective: spec-driven, governed agentic infrastructure for autonomous influencer operations.
+- State objective: spec-driven, governed autonomous influencer platform for operations, review, and orchestration.
 - Mention stack: Java 21, virtual threads, React frontend, MCP-oriented integration boundaries.
 
 ## 0:40 - 1:40 Spec-First Structure
