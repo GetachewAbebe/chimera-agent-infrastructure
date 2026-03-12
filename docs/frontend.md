@@ -5,6 +5,7 @@
 1. Fleet Status dashboard (agent state, spend, queue depth)
 2. HITL review queue (approve/reject)
 3. Campaign composer (goal -> task tree)
+4. Connection status strip (backend health, telemetry mode, last sync, auto-refresh)
 
 Implementation baseline:
 
@@ -45,6 +46,12 @@ Telemetry fields consumed by `App.tsx`:
 - Wallet runtime: `walletProvider`
 - Financial health: `dailyBudgetUsd`, `todaySpendUsd`, `remainingBudgetUsd`, `walletTransfersToday`, `spendDeltaVsYesterdayUsd`
 - Perception health: `trendSignalsToday`, `topTrendTopicsToday`
+
+Derived UX behavior:
+
+- When `GET /api/telemetry` fails but `GET /api/tasks` succeeds, the UI falls back to client-derived queue counters instead of showing an empty dashboard.
+- When the backend is unreachable, the error panel gives an actionable local run hint instead of a raw `Failed to fetch` message.
+- Fleet drill-down groups task activity by `assignedWorkerId` so the dashboard reads as an operations console rather than a single-form page.
 
 Rules:
 

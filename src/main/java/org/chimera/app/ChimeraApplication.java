@@ -27,6 +27,7 @@ import org.chimera.mcp.McpResourceClient;
 import org.chimera.mcp.McpToolClient;
 import org.chimera.mcp.McpToolResult;
 import org.chimera.model.Task;
+import org.chimera.openclaw.McpOpenClawStatusPublisher;
 import org.chimera.orchestrator.InMemoryQueueGovernanceMetrics;
 import org.chimera.orchestrator.TaskOrchestratorService;
 import org.chimera.perception.KeywordSemanticRelevanceScorer;
@@ -83,6 +84,7 @@ public final class ChimeraApplication {
         new PlannerService(
             taskQueue, perceptionService, cognitiveContextAssembler, trendSignalRepository);
     InMemoryQueueGovernanceMetrics queueGovernanceMetrics = new InMemoryQueueGovernanceMetrics();
+    McpOpenClawStatusPublisher openClawStatusPublisher = new McpOpenClawStatusPublisher(toolClient);
     TaskOrchestratorService orchestratorService =
         new TaskOrchestratorService(
             taskQueue,
@@ -94,7 +96,8 @@ public final class ChimeraApplication {
             loadDefaultDailyBudget(),
             walletLedgerRepository,
             queueGovernanceMetrics,
-            loadQueueMaxRetries());
+            loadQueueMaxRetries(),
+            openClawStatusPublisher);
     CampaignApiService campaignApiService =
         new CampaignApiService(planner, taskRepository, orchestratorService);
     ReviewApiService reviewApiService = new ReviewApiService(taskRepository);

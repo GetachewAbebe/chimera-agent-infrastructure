@@ -1,0 +1,98 @@
+name: chimera-governance-pipeline
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * *"
+
+jobs:
+  quality-and-contracts:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Lint
+        run: make lint
+
+      - name: Spec Check
+        run: make spec-check
+
+      - name: Test (TDD contracts)
+        run: make test
+
+      - name: Frontend Install
+        run: npm ci
+        working-directory: frontend
+
+      - name: Frontend Lint
+        run: npm run lint
+        working-directory: frontend
+
+      - name: Frontend Build
+        run: npm run build
+        working-directory: frontend
+
+      - name: Install Playwright Chromium
+        run: npm run test:e2e:install
+        working-directory: frontend
+
+      - name: Frontend Browser E2E
+        run: npm run test:e2e
+        working-directory: frontend
+
+      - name: Frontend Browser E2E (Live Backend)
+        run: npm run test:e2e:live
+        working-directory: frontend
+
+  nightly-benchmark:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Start API Runtime
+        run: |
+          nohup env CHIMERA_WRITE_RATE_LIMIT_MAX_REQUESTS=1000 CHIMERA_WRITE_RATE_LIMIT_WINDOW_SECONDS=60 PORT=8080 mvn -q -DskipTests exec:java -Dexec.mainClass=org.chimera.app.ChimeraApplication > /tmp/chimera-api.log 2>&1 &
+          for attempt in {1..60}; do
+            if curl -fsS http://127.0.0.1:8080/health >/dev/null; then
+              echo "API is healthy"
+              break
+            fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:8080/health >/dev/null
+
+      - name: Run Sustained Benchmark
+        run: |
+          ROUNDS=4 TOTAL_REQUESTS=300 CONCURRENCY=50 OUTPUT_DIR=artifacts/benchmarks/nightly make benchmark-sustained
+
+      - name: Upload Benchmark Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: chimera-benchmark-artifacts
+          path: artifacts/benchmarks/nightly

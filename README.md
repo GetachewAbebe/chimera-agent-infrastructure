@@ -2,7 +2,7 @@
 
 Project Chimera is a spec-driven, governance-first infrastructure for autonomous influencer agents.
 
-This repository is designed for the Day 1 and Day 2 challenge deliverables and rubric, with an industry-standard baseline focused on:
+This repository provides an industry-standard baseline focused on:
 
 - Java 21 immutable domain models (`record`)
 - Planner -> Worker -> Judge swarm orchestration
@@ -97,6 +97,7 @@ Orchestration tuning:
 - `CHIMERA_QUEUE_MAX_RETRIES` (default `2`) for retry attempts before dead-lettering failed tasks.
 - `CHIMERA_REPLAY_COOLDOWN_SECONDS` (default `300`) minimum cooldown between accepted manual replays of the same task.
 - `CHIMERA_REPLAY_MAX_PER_TASK_PER_DAY` (default `3`) max accepted manual replays per task per UTC day.
+- `CHIMERA_OPENCLAW_SIGNING_SECRET` optional HMAC secret used to sign `openclaw.publish_status` payloads.
 - `CHIMERA_CORS_ALLOWED_ORIGINS` (default local frontend origins) for browser preflight/origin policy.
 - `CHIMERA_MCP_RESOURCE_ENDPOINT` optional live MCP resource HTTP endpoint (for perception reads).
 - `CHIMERA_MCP_RESOURCE_TIMEOUT_SECONDS` (default `4`) timeout for MCP resource HTTP reads.
@@ -123,6 +124,7 @@ export CHIMERA_CDP_BASE_URL='https://api.coinbase.com/agentkit/v1'
 export CHIMERA_QUEUE_MAX_RETRIES='2'
 export CHIMERA_REPLAY_COOLDOWN_SECONDS='300'
 export CHIMERA_REPLAY_MAX_PER_TASK_PER_DAY='3'
+export CHIMERA_OPENCLAW_SIGNING_SECRET='replace-with-openclaw-signing-secret'
 export CHIMERA_CORS_ALLOWED_ORIGINS='http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173'
 export CHIMERA_MCP_RESOURCE_ENDPOINT='http://localhost:9090/resource'
 export CHIMERA_MCP_RESOURCE_TIMEOUT_SECONDS='4'
@@ -213,6 +215,7 @@ Social execution routes platform-specific tool calls from task resources (`twitt
 Operator users can replay dead-lettered/rejected tasks back to `PENDING` using the replay endpoint or the Task Ledger replay action.
 Replay governance is enforced with a per-task cooldown and daily replay cap, and every replay decision is written to persistent audit storage when PostgreSQL is configured.
 Operational response steps are documented in `docs/replay_governance_runbook.md`.
+Task orchestration now also emits best-effort OpenClaw agent status updates through `openclaw.publish_status` on worker state transitions, with signed payloads and local audit retention.
 
 Transaction execution path:
 - `WorkerService` handles `EXECUTE_TRANSACTION` tasks via `WalletExecutionService`.
@@ -238,32 +241,6 @@ Transaction execution path:
   - `workerP95LatencyMs`
   - `successfulExecutionsToday`
   - `failedExecutionsToday`
-
-## Rubric Coverage
-
-- DB & Data Management: `specs/technical.md`, `db/migrations/V1__init.sql`, `docs/db_data_management.md`
-- Backend: `src/main/java/org/chimera/**`
-- Cognitive Core: `src/main/resources/soul/SOUL.md`, `src/main/java/org/chimera/cognitive/**`
-- Frontend: `docs/frontend.md`, `frontend/src/App.tsx`
-- Rule Creation / Agent Rules: `docs/rule_creation_blueprint.md`, `.cursor/rules/agent.mdc`
-- Security: `docs/security.md`, `src/main/java/org/chimera/security/BudgetGovernor.java`, `src/main/java/org/chimera/security/SensitiveTopicClassifier.java`
-- Acceptance Criteria: `specs/acceptance_criteria.md`
-- MCP Configuration: `.cursor/mcp.json`, `.vscode/mcp.json`
-- Agent Skills Structure: `skills/**`, `src/main/java/org/chimera/skills/RuntimeSkillGateway.java`
-- Containerization: `Dockerfile`, `docker-compose.yml`
-- Automation: `Makefile`, `scripts/spec_check.sh`
-- CI/CD & Governance: `.github/workflows/main.yml`, `.coderabbit.yaml`
-- Testing (TDD): `src/test/java/org/chimera/tests/*`
-- API E2E Flows: `src/test/java/org/chimera/tests/api/ChimeraHttpServerAuthTest.java` (mixed auth + campaign/review/replay journey)
-- Frontend Browser E2E: `frontend/playwright.config.ts`, `frontend/tests/e2e/dashboard.spec.ts`
-- Frontend Browser E2E (Live Backend): `frontend/playwright.live.config.ts`, `frontend/tests/e2e/dashboard.live.spec.ts`
-- Java Data Modeling (Immutability): `src/main/java/org/chimera/model/*`
-- Swarm Concurrency: `src/main/java/org/chimera/worker/WorkerService.java`
-- Load Validation: `src/test/java/org/chimera/tests/worker/WorkerServiceLoadTest.java`, `scripts/load_validation.sh`, `scripts/sustained_benchmark.sh`, `docs/load_validation.md`
-- Repository Documentation: this file + `docs/**`
-- Replay Governance Runbook: `docs/replay_governance_runbook.md`
-- Agentic Trajectory & Growth: `docs/agentic_trajectory.md`
-- Full requirement traceability: `docs/requirements_traceability_matrix.md`
 
 ## Submission Pointers
 

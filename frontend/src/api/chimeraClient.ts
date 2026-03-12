@@ -81,6 +81,13 @@ const readError = async (response: Response): Promise<ApiRequestError> => {
 
 const apiUrl = (baseUrl: string, path: string): string => `${trimSlash(baseUrl)}${path}`;
 
+export const checkApiHealth = async (baseUrl: string): Promise<boolean> => {
+  const response = await fetch(apiUrl(baseUrl, "/health"), {
+    method: "GET"
+  });
+  return response.ok;
+};
+
 export const listTasks = async (auth: AuthConfig): Promise<Task[]> => {
   const response = await fetch(apiUrl(auth.baseUrl, "/api/tasks"), {
     method: "GET",

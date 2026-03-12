@@ -18,6 +18,8 @@ import org.chimera.model.TaskResult;
 import org.chimera.model.TaskStatus;
 import org.chimera.model.TaskType;
 import org.chimera.model.WalletLedgerEntry;
+import org.chimera.openclaw.AgentStatusPublisher;
+import org.chimera.openclaw.NoOpAgentStatusPublisher;
 import org.chimera.persistence.InMemoryWalletLedgerRepository;
 import org.chimera.persistence.TaskRepository;
 import org.chimera.persistence.WalletLedgerRepository;
@@ -39,6 +41,7 @@ public final class TaskOrchestratorService {
   private final QueueGovernanceMetrics queueGovernanceMetrics;
   private final SensitiveTopicClassifier sensitiveTopicClassifier;
   private final int maxRetryAttempts;
+  private final AgentStatusPublisher agentStatusPublisher;
   private final Map<UUID, Integer> retryAttemptsByTask = new ConcurrentHashMap<>();
 
   public TaskOrchestratorService(
@@ -56,7 +59,8 @@ public final class TaskOrchestratorService {
         new BigDecimal("500.00"),
         new InMemoryWalletLedgerRepository(),
         new InMemoryQueueGovernanceMetrics(),
-        DEFAULT_MAX_RETRY_ATTEMPTS);
+        DEFAULT_MAX_RETRY_ATTEMPTS,
+        new NoOpAgentStatusPublisher());
   }
 
   public TaskOrchestratorService(
@@ -75,7 +79,8 @@ public final class TaskOrchestratorService {
         new BigDecimal("500.00"),
         new InMemoryWalletLedgerRepository(),
         new InMemoryQueueGovernanceMetrics(),
-        DEFAULT_MAX_RETRY_ATTEMPTS);
+        DEFAULT_MAX_RETRY_ATTEMPTS,
+        new NoOpAgentStatusPublisher());
   }
 
   public TaskOrchestratorService(
@@ -95,7 +100,8 @@ public final class TaskOrchestratorService {
         defaultDailyBudgetUsd,
         new InMemoryWalletLedgerRepository(),
         new InMemoryQueueGovernanceMetrics(),
-        DEFAULT_MAX_RETRY_ATTEMPTS);
+        DEFAULT_MAX_RETRY_ATTEMPTS,
+        new NoOpAgentStatusPublisher());
   }
 
   public TaskOrchestratorService(
@@ -116,7 +122,8 @@ public final class TaskOrchestratorService {
         defaultDailyBudgetUsd,
         walletLedgerRepository,
         new InMemoryQueueGovernanceMetrics(),
-        DEFAULT_MAX_RETRY_ATTEMPTS);
+        DEFAULT_MAX_RETRY_ATTEMPTS,
+        new NoOpAgentStatusPublisher());
   }
 
   public TaskOrchestratorService(
@@ -138,7 +145,8 @@ public final class TaskOrchestratorService {
         defaultDailyBudgetUsd,
         walletLedgerRepository,
         new InMemoryQueueGovernanceMetrics(),
-        DEFAULT_MAX_RETRY_ATTEMPTS);
+        DEFAULT_MAX_RETRY_ATTEMPTS,
+        new NoOpAgentStatusPublisher());
   }
 
   public TaskOrchestratorService(
@@ -152,6 +160,32 @@ public final class TaskOrchestratorService {
       WalletLedgerRepository walletLedgerRepository,
       QueueGovernanceMetrics queueGovernanceMetrics,
       int maxRetryAttempts) {
+    this(
+        taskQueue,
+        reviewQueue,
+        deadLetterQueue,
+        taskRepository,
+        workerService,
+        judgeService,
+        defaultDailyBudgetUsd,
+        walletLedgerRepository,
+        queueGovernanceMetrics,
+        maxRetryAttempts,
+        new NoOpAgentStatusPublisher());
+  }
+
+  public TaskOrchestratorService(
+      QueuePort<Task> taskQueue,
+      QueuePort<UUID> reviewQueue,
+      QueuePort<UUID> deadLetterQueue,
+      TaskRepository taskRepository,
+      WorkerService workerService,
+      JudgeService judgeService,
+      BigDecimal defaultDailyBudgetUsd,
+      WalletLedgerRepository walletLedgerRepository,
+      QueueGovernanceMetrics queueGovernanceMetrics,
+      int maxRetryAttempts,
+      AgentStatusPublisher agentStatusPublisher) {
     if (taskQueue == null) {
       throw new IllegalArgumentException("taskQueue is required");
     }
@@ -179,6 +213,9 @@ public final class TaskOrchestratorService {
     if (maxRetryAttempts < 0) {
       throw new IllegalArgumentException("maxRetryAttempts must be >= 0");
     }
+    if (agentStatusPublisher == null) {
+      throw new IllegalArgumentException("agentStatusPublisher is required");
+    }
 
     this.taskQueue = taskQueue;
     this.reviewQueue = reviewQueue;
@@ -191,6 +228,7 @@ public final class TaskOrchestratorService {
     this.queueGovernanceMetrics = queueGovernanceMetrics;
     this.sensitiveTopicClassifier = new SensitiveTopicClassifier();
     this.maxRetryAttempts = maxRetryAttempts;
+    this.agentStatusPublisher = agentStatusPublisher;
   }
 
   public List<Task> processAvailableTasks(int maxTasks) {
@@ -214,6 +252,7 @@ public final class TaskOrchestratorService {
     Task inProgress =
         taskRepository.updateStatus(
             queuedTask.tenantId(), queuedTask.taskId(), TaskStatus.IN_PROGRESS);
+    safePublishStatus(inProgress, TaskStatus.IN_PROGRESS, "planning_to_working");
 
     try {
       TaskResult result = workerService.execute(inProgress).join();
@@ -242,8 +281,11 @@ public final class TaskOrchestratorService {
         reviewQueue.push(inProgress.taskId());
       }
       retryAttemptsByTask.remove(inProgress.taskId());
-      return taskRepository.updateStatus(
-          inProgress.tenantId(), inProgress.taskId(), decision.nextStatus());
+      Task updated =
+          taskRepository.updateStatus(
+              inProgress.tenantId(), inProgress.taskId(), decision.nextStatus());
+      safePublishStatus(updated, updated.status(), "judge_decision");
+      return updated;
     } catch (Exception ex) {
       queueGovernanceMetrics.recordExecutionLatency(
           inProgress.tenantId(), inProgress.taskId(), elapsedMillis(startedAtNanos), false);
@@ -293,14 +335,28 @@ public final class TaskOrchestratorService {
     if (attempt <= maxRetryAttempts) {
       queueGovernanceMetrics.recordRetry(inProgress.tenantId(), inProgress.taskId());
       taskQueue.push(inProgress.withStatus(TaskStatus.PENDING));
-      return taskRepository.updateStatus(
-          inProgress.tenantId(), inProgress.taskId(), TaskStatus.PENDING);
+      Task updated =
+          taskRepository.updateStatus(
+              inProgress.tenantId(), inProgress.taskId(), TaskStatus.PENDING);
+      safePublishStatus(updated, TaskStatus.PENDING, "retry_scheduled");
+      return updated;
     }
 
     retryAttemptsByTask.remove(inProgress.taskId());
     queueGovernanceMetrics.recordDeadLetter(inProgress.tenantId(), inProgress.taskId());
     deadLetterQueue.push(inProgress.taskId());
-    return taskRepository.updateStatus(
-        inProgress.tenantId(), inProgress.taskId(), TaskStatus.REJECTED);
+    Task updated =
+        taskRepository.updateStatus(
+            inProgress.tenantId(), inProgress.taskId(), TaskStatus.REJECTED);
+    safePublishStatus(updated, TaskStatus.REJECTED, "dead_lettered");
+    return updated;
+  }
+
+  private void safePublishStatus(Task task, TaskStatus status, String reason) {
+    try {
+      agentStatusPublisher.publishStatus(task, status, reason);
+    } catch (RuntimeException ex) {
+      // OpenClaw status publication is best-effort and must not break governed execution.
+    }
   }
 }

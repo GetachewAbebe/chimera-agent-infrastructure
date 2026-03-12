@@ -9,6 +9,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.chimera.action.SocialPublishingService;
 import org.chimera.api.CampaignApiService;
 import org.chimera.api.CreateCampaignRequest;
@@ -24,6 +25,7 @@ import org.chimera.model.TaskContext;
 import org.chimera.model.TaskStatus;
 import org.chimera.model.TaskType;
 import org.chimera.model.WalletLedgerEntry;
+import org.chimera.openclaw.AgentStatusPublisher;
 import org.chimera.orchestrator.InMemoryQueueGovernanceMetrics;
 import org.chimera.orchestrator.TaskOrchestratorService;
 import org.chimera.perception.KeywordSemanticRelevanceScorer;
@@ -305,6 +307,92 @@ class TaskOrchestratorServiceTest {
 
     assertThat(processed).singleElement().extracting(Task::status).isEqualTo(TaskStatus.ESCALATED);
     assertThat(reviewQueue.size()).isEqualTo(1);
+    workerService.close();
+  }
+
+  @Test
+  void shouldPublishOpenClawStatusOnTaskTransitions() {
+    InMemoryQueuePort<Task> taskQueue = new InMemoryQueuePort<>();
+    InMemoryTaskRepository taskRepository = new InMemoryTaskRepository();
+    CopyOnWriteArrayList<TaskStatus> publishedStatuses = new CopyOnWriteArrayList<>();
+    AgentStatusPublisher statusPublisher = (task, status, reason) -> publishedStatuses.add(status);
+
+    WorkerService workerService =
+        new WorkerService(
+            new SocialPublishingService(
+                (toolName, arguments) ->
+                    new McpToolResult(true, "ok", Map.of("external_id", "id-" + toolName))));
+    TaskOrchestratorService orchestratorService =
+        new TaskOrchestratorService(
+            taskQueue,
+            null,
+            new InMemoryQueuePort<>(),
+            taskRepository,
+            workerService,
+            new JudgeService(new BudgetGovernor()),
+            new BigDecimal("500.00"),
+            new InMemoryWalletLedgerRepository(),
+            new InMemoryQueueGovernanceMetrics(),
+            1,
+            statusPublisher);
+
+    Task task =
+        Task.pending(
+            "tenant-alpha",
+            TaskType.GENERATE_CONTENT,
+            Priority.HIGH,
+            new TaskContext("Launch sustainable fashion campaign", List.of(), List.of()),
+            "worker-alpha");
+    taskRepository.saveAll(List.of(task));
+    taskQueue.push(task);
+
+    orchestratorService.processAvailableTasks(1);
+
+    assertThat(publishedStatuses).contains(TaskStatus.IN_PROGRESS, TaskStatus.COMPLETE);
+    workerService.close();
+  }
+
+  @Test
+  void shouldIgnoreOpenClawPublisherFailuresDuringExecution() {
+    InMemoryQueuePort<Task> taskQueue = new InMemoryQueuePort<>();
+    InMemoryTaskRepository taskRepository = new InMemoryTaskRepository();
+    AgentStatusPublisher statusPublisher =
+        (task, status, reason) -> {
+          throw new IllegalStateException("openclaw unavailable");
+        };
+
+    WorkerService workerService =
+        new WorkerService(
+            new SocialPublishingService(
+                (toolName, arguments) ->
+                    new McpToolResult(true, "ok", Map.of("external_id", "id-" + toolName))));
+    TaskOrchestratorService orchestratorService =
+        new TaskOrchestratorService(
+            taskQueue,
+            null,
+            new InMemoryQueuePort<>(),
+            taskRepository,
+            workerService,
+            new JudgeService(new BudgetGovernor()),
+            new BigDecimal("500.00"),
+            new InMemoryWalletLedgerRepository(),
+            new InMemoryQueueGovernanceMetrics(),
+            1,
+            statusPublisher);
+
+    Task task =
+        Task.pending(
+            "tenant-alpha",
+            TaskType.GENERATE_CONTENT,
+            Priority.HIGH,
+            new TaskContext("Launch sustainable fashion campaign", List.of(), List.of()),
+            "worker-alpha");
+    taskRepository.saveAll(List.of(task));
+    taskQueue.push(task);
+
+    List<Task> processed = orchestratorService.processAvailableTasks(1);
+
+    assertThat(processed).singleElement().extracting(Task::status).isEqualTo(TaskStatus.COMPLETE);
     workerService.close();
   }
 

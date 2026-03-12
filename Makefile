@@ -11,7 +11,7 @@ test:
 	$(MVN) -q $(MAVEN_FLAGS) test
 
 lint:
-	$(MVN) -q $(MAVEN_FLAGS) -DskipTests validate spotless:check
+	$(MVN) -q $(MAVEN_FLAGS) -DskipTests validate com.diffplug.spotless:spotless-maven-plugin:check
 
 spec-check:
 	bash scripts/spec_check.sh

@@ -1,0 +1,21 @@
+---
+description: Project-wide agent operating directives for Chimera
+alwaysApply: true
+---
+
+# Project Context
+This is Project Chimera, an autonomous influencer infrastructure system.
+
+# Prime Directive
+NEVER generate code without checking specs/ first.
+
+# Java Directives
+- Strictly adhere to Java 21+ idioms.
+- Use Java `record` for immutable DTOs passed between Planner/Worker/Judge.
+- Use JUnit 5 for all generated tests.
+- Use virtual-thread based concurrency for worker execution where appropriate.
+
+# Traceability and Governance
+- Explain your plan before writing code.
+- Keep all external interactions behind MCP boundaries.
+- Apply HITL policy and confidence thresholds before action finalization.

@@ -167,6 +167,12 @@ button:focus {
   gap: 10px;
 }
 
+.toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .toolbar-hint {
   margin: 0;
   font-size: 13px;
@@ -207,6 +213,12 @@ button:focus {
 .button-danger {
   background: #fce4de;
   color: #8f1f1f;
+}
+
+.button-tertiary {
+  background: transparent;
+  color: var(--accent-strong);
+  border: 1px solid color-mix(in oklab, var(--accent) 24%, var(--line));
 }
 
 .metrics-grid {
@@ -253,10 +265,146 @@ button:focus {
   font-size: 12px;
 }
 
+.ops-strip {
+  padding: 14px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.ops-strip-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.status-chip {
+  margin: 0;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-live {
+  background: #d7f3e6;
+  color: #17714f;
+}
+
+.status-degraded {
+  background: #f9eecf;
+  color: var(--warning);
+}
+
+.status-offline {
+  background: #fde7e1;
+  color: var(--danger);
+}
+
+.status-checking,
+.status-neutral {
+  background: #ecf2f3;
+  color: #36505a;
+}
+
 .dashboard-grid {
   display: grid;
   gap: 16px;
   grid-template-columns: 1fr 1fr;
+}
+
+.fleet-panel {
+  padding: 20px;
+  animation: fade-up 0.57s ease both;
+}
+
+.fleet-grid {
+  margin-top: 14px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.fleet-card {
+  border: 1px solid color-mix(in oklab, var(--line) 84%, white);
+  border-radius: 16px;
+  background: rgba(255, 253, 248, 0.92);
+  padding: 14px;
+}
+
+.fleet-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fleet-worker,
+.fleet-goal,
+.fleet-meta {
+  margin: 0;
+}
+
+.fleet-worker {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.fleet-goal {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.fleet-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  margin-top: 14px;
+}
+
+.fleet-stats p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.fleet-stats strong {
+  color: var(--text);
+  font-size: 17px;
+}
+
+.fleet-meter {
+  display: flex;
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  margin-top: 14px;
+  background: #e6e1d3;
+}
+
+.fleet-meter-segment {
+  height: 100%;
+}
+
+.fleet-meter-complete {
+  background: #17714f;
+}
+
+.fleet-meter-review {
+  background: #bb8207;
+}
+
+.fleet-meter-rejected {
+  background: #a62828;
+}
+
+.fleet-meta {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .review-grid {
@@ -382,9 +530,17 @@ tbody td {
   margin-top: 10px;
 }
 
+.message-panel {
+  display: grid;
+  gap: 8px;
+  border-left: 4px solid color-mix(in oklab, var(--accent) 50%, white);
+  background: linear-gradient(135deg, rgba(255, 250, 241, 0.96) 0%, rgba(243, 248, 247, 0.94) 100%);
+}
+
 .error-text,
 .notice-text {
   margin: 0;
+  line-height: 1.5;
 }
 
 .error-text {
@@ -430,5 +586,11 @@ tbody td {
   .toolbar {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .toolbar-actions {
+    width: 100%;
+    display: grid;
+    gap: 8px;
   }
 }

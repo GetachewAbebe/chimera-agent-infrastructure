@@ -1,0 +1,20 @@
+language: en-US
+reviews:
+  profile: assertive
+  request_changes_workflow: true
+  high_level_summary: true
+  auto_review:
+    enabled: true
+    drafts: false
+path_instructions:
+  - path: "src/main/java/**"
+    instructions: |
+      Validate spec alignment with specs/*.md.
+      Prioritize Java thread safety, immutable state, and OCC integrity.
+      Flag insecure secret handling and missing budget-governor checks.
+  - path: "specs/**"
+    instructions: |
+      Ensure acceptance criteria are testable and map to implementation artifacts.
+  - path: "skills/**"
+    instructions: |
+      Enforce strict input/output contracts and explicit error conditions.

@@ -229,3 +229,17 @@ test("should run campaign creation, review reject, replay, and cooldown error fl
   await expect(page.locator(".error-text")).toContainText("HTTP 429");
   await expect(page.getByText("Dead-Letter Queue")).toBeVisible();
 });
+
+test("should show actionable guidance when the backend is unreachable", async ({ page }) => {
+  await page.route("http://localhost:8080/api/**", async (route) => {
+    await route.abort();
+  });
+  await page.route("http://localhost:8080/health", async (route) => {
+    await route.abort();
+  });
+
+  await page.goto("/");
+
+  await expect(page.locator(".error-text")).toContainText("Unable to reach http://localhost:8080");
+  await expect(page.locator(".error-text")).toContainText("PORT=8080 make run");
+});

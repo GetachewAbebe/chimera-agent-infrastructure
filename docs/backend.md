@@ -40,6 +40,7 @@
 - `SocialPublishingService`: maps platform-agnostic publish/reply requests to MCP tool calls.
 - `CreativeEngineService`: composes multimodal draft artifacts through MCP creative tools and enforces consistency lock inputs.
 - `TaskOrchestratorService`: drains queued tasks, runs worker execution, applies judge policy, retries transient execution failures, and dead-letters exhausted tasks.
+- `McpOpenClawStatusPublisher`: publishes best-effort `openclaw.publish_status` updates on orchestrator state transitions using signed tenant-scoped payloads.
 - `WorkerService`: executes MCP-backed social actions plus governed transaction execution (`EXECUTE_TRANSACTION`).
 - `WorkerService`: resolves social platform from task resources (Twitter/Instagram/Threads) and applies retry/backoff on MCP action failures.
 - `JudgeService`: enforces confidence thresholds, sensitive-topic escalation, OCC checks, and budget gating for transaction tasks.
@@ -92,7 +93,9 @@
 - `CHIMERA_MCP_RESOURCE_ENDPOINT` enables live HTTP-backed resource reads for perception.
 - `CHIMERA_MCP_RESOURCE_TIMEOUT_SECONDS` sets outbound request timeout.
 - `CHIMERA_MCP_RESOURCE_AUTHORIZATION` optionally sets an `Authorization` header for the MCP gateway.
+- `CHIMERA_OPENCLAW_SIGNING_SECRET` configures the HMAC secret used for OpenClaw status publication signatures.
 - If the live adapter fails or returns blank payloads, runtime falls back to deterministic static resource payloads.
+- If OpenClaw publication fails, orchestration continues and the failed attempt is retained in in-memory publisher audit history.
 
 ## Next Expansion
 
